@@ -1,5 +1,8 @@
 import { createClient } from '@/lib/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
+import { mentorGuidanceSchema } from '@/lib/validation';
+import { logger } from '@/lib/logger';
+import { ZodError } from 'zod';
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent';
@@ -14,11 +17,23 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { evaluationId, actionItemIndex, actionItemText } = await request.json();
-
-    if (!evaluationId || actionItemIndex === undefined || !actionItemText) {
-      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+    const body = await request.json();
+    
+    // Validate input with Zod
+    let validatedData
+    try {
+      validatedData = mentorGuidanceSchema.parse(body)
+    } catch (error) {
+      if (error instanceof ZodError) {
+        return NextResponse.json(
+          { error: 'Invalid input', details: error.issues },
+          { status: 400 }
+        )
+      }
+      throw error
     }
+    
+    const { evaluationId, actionItemIndex, actionItemText } = validatedData;
 
     // Check if guidance already exists
     const { data: existingGuidance } = await supabase
@@ -88,7 +103,7 @@ Remember: This is personalized mentorship, not generic advice. Be specific and a
 
     if (!response.ok) {
       const errorData = await response.text();
-      console.error('Gemini API error:', errorData);
+      logger.error('Gemini API error:', errorData);
       throw new Error('Failed to generate mentor guidance');
     }
 
@@ -110,7 +125,7 @@ Remember: This is personalized mentorship, not generic advice. Be specific and a
       });
 
     if (insertError) {
-      console.error('Error storing mentor guidance:', insertError);
+      logger.error('Error storing mentor guidance:', insertError);
       // Still return the response even if storage fails
     }
 
@@ -121,7 +136,7 @@ Remember: This is personalized mentorship, not generic advice. Be specific and a
     });
 
   } catch (error) {
-    console.error('Error generating mentor guidance:', error);
+    logger.error('Error generating mentor guidance:', error);
     return NextResponse.json(
       { error: 'Failed to generate mentor guidance' },
       { status: 500 }

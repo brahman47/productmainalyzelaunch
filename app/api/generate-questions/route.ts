@@ -1,5 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { generateQuestionsSchema } from '@/lib/validation'
+import { logger } from '@/lib/logger'
+import { rateLimit, getClientIdentifier, rateLimitConfigs } from '@/lib/rateLimit'
+import { ZodError } from 'zod'
 
 export async function POST(request: NextRequest) {
   try {
@@ -10,23 +14,45 @@ export async function POST(request: NextRequest) {
     if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
+    
+    // Rate limiting
+    const identifier = getClientIdentifier(request, user.id)
+    const rateLimitResult = rateLimit(identifier, rateLimitConfigs.generateQuestions)
+    
+    if (!rateLimitResult.success) {
+      return NextResponse.json(
+        { 
+          error: 'Rate limit exceeded. Please try again later.',
+          retryAfter: Math.ceil((rateLimitResult.reset - Date.now()) / 1000)
+        },
+        { 
+          status: 429,
+          headers: {
+            'X-RateLimit-Limit': rateLimitResult.limit.toString(),
+            'X-RateLimit-Remaining': rateLimitResult.remaining.toString(),
+            'X-RateLimit-Reset': rateLimitResult.reset.toString(),
+          }
+        }
+      )
+    }
 
     const body = await request.json()
-    const { topic, numQuestions, difficulty } = body
-
-    if (!topic || !numQuestions || !difficulty) {
-      return NextResponse.json(
-        { error: 'Topic, number of questions, and difficulty are required' },
-        { status: 400 }
-      )
+    
+    // Validate input with Zod
+    let validatedData
+    try {
+      validatedData = generateQuestionsSchema.parse(body)
+    } catch (error) {
+      if (error instanceof ZodError) {
+        return NextResponse.json(
+          { error: 'Invalid input', details: error.issues },
+          { status: 400 }
+        )
+      }
+      throw error
     }
-
-    if (numQuestions < 1 || numQuestions > 5) {
-      return NextResponse.json(
-        { error: 'Number of questions must be between 1 and 5' },
-        { status: 400 }
-      )
-    }
+    
+    const { topic, numQuestions, difficulty } = validatedData
 
     const difficultyDescriptions = {
       conceptual: 'basic conceptual understanding level',
@@ -86,7 +112,7 @@ Generate exactly ${numQuestions} question(s) now.`
 
     if (!response.ok) {
       const errorData = await response.text()
-      console.error('Gemini API error:', errorData)
+      logger.error('Gemini API error:', errorData)
       throw new Error('Failed to generate questions')
     }
 
@@ -112,7 +138,7 @@ Generate exactly ${numQuestions} question(s) now.`
       .single()
 
     if (dbError) {
-      console.error('Database error:', dbError)
+      logger.error('Database error:', dbError)
       return NextResponse.json({ error: 'Failed to save questions' }, { status: 500 })
     }
 
@@ -122,7 +148,7 @@ Generate exactly ${numQuestions} question(s) now.`
       questions: questionData.questions,
     })
   } catch (error) {
-    console.error('Error in generate-questions API:', error)
+    logger.error('Error in generate-questions API:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

@@ -1,5 +1,8 @@
 import { createClient } from '@/lib/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
+import { explainWrongAnswerSchema } from '@/lib/validation';
+import { logger } from '@/lib/logger';
+import { ZodError } from 'zod';
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent';
@@ -14,11 +17,23 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { sessionId, questionIndex, question, correctAnswer, userAnswer, correctOption, userOption } = await request.json();
-
-    if (!sessionId || questionIndex === undefined || !question || !correctAnswer || !userAnswer) {
-      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+    const body = await request.json();
+    
+    // Validate input with Zod
+    let validatedData
+    try {
+      validatedData = explainWrongAnswerSchema.parse(body)
+    } catch (error) {
+      if (error instanceof ZodError) {
+        return NextResponse.json(
+          { error: 'Invalid input', details: error.issues },
+          { status: 400 }
+        )
+      }
+      throw error
     }
+    
+    const { sessionId, questionIndex, question, correctAnswer, userAnswer, correctOption, userOption } = validatedData;
 
     // Check if explanation already exists
     const { data: existing } = await supabase
@@ -74,7 +89,7 @@ Focus on helping them learn and remember, not just correcting them.`;
 
     if (!response.ok) {
       const errorData = await response.text();
-      console.error('Gemini API error:', errorData);
+      logger.error('Gemini API error:', errorData);
       throw new Error('Failed to generate explanation');
     }
 
@@ -95,7 +110,7 @@ Focus on helping them learn and remember, not just correcting them.`;
       });
 
     if (insertError) {
-      console.error('Error storing explanation:', insertError);
+      logger.error('Error storing explanation:', insertError);
       // Still return the explanation even if storage fails
     }
 
@@ -106,7 +121,7 @@ Focus on helping them learn and remember, not just correcting them.`;
     });
 
   } catch (error) {
-    console.error('Error generating explanation:', error);
+    logger.error('Error generating explanation:', error);
     return NextResponse.json(
       { error: 'Failed to generate explanation' },
       { status: 500 }

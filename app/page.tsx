@@ -244,13 +244,13 @@ export default function Home() {
             </div>
             <div className="text-center p-6">
               <Users className="w-12 h-12 text-white mx-auto mb-4" />
-              <h4 className="font-semibold text-white mb-2">10,000+ Users</h4>
-              <p className="text-sm text-slate-300">Trusted by UPSC aspirants nationwide</p>
+              <h4 className="font-semibold text-white mb-2">Data Privacy</h4>
+              <p className="text-sm text-slate-300">Your data stays private and secure</p>
             </div>
             <div className="text-center p-6">
               <CheckCircle className="w-12 h-12 text-white mx-auto mb-4" />
-              <h4 className="font-semibold text-white mb-2">99.9% Uptime</h4>
-              <p className="text-sm text-slate-300">Always available when you need us</p>
+              <h4 className="font-semibold text-white mb-2">Reliable Service</h4>
+              <p className="text-sm text-slate-300">Consistent and dependable platform</p>
             </div>
           </div>
         </div>
@@ -263,7 +263,7 @@ export default function Home() {
             Ready to Ace Your UPSC Exam?
           </h2>
           <p className="text-xl text-slate-300 mb-8">
-            Join thousands of successful aspirants who trust Mainalyze for their preparation
+            Start your preparation journey with AI-powered tools designed for UPSC aspirants
           </p>
           <Link 
             href="/auth/signup"

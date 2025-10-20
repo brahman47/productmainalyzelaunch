@@ -29,7 +29,7 @@ export const evaluateAnswerSchema = z.object({
     .max(5000, 'Answer text too long')
     .trim()
     .optional(),
-  answerFiles: z.array(z.string().url('Invalid file URL'))
+  answerFiles: z.array(z.string().min(1, 'File URL cannot be empty'))
     .min(1, 'At least one answer file is required')
     .max(10, 'Maximum 10 files allowed'),
 })

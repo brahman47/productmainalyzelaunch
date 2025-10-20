@@ -3,23 +3,5 @@
   "outputDirectory": ".next",
   "devCommand": "npm run dev",
   "installCommand": "npm install",
-  "framework": "nextjs",
-  "env": {
-    "NEXT_PUBLIC_SUPABASE_URL": {
-      "type": "string",
-      "description": "Your Supabase project URL"
-    },
-    "NEXT_PUBLIC_SUPABASE_ANON_KEY": {
-      "type": "string",
-      "description": "Your Supabase anonymous/public key"
-    },
-    "OPENROUTER_API_KEY": {
-      "type": "secret",
-      "description": "OpenRouter API key for Gemini access"
-    },
-    "NEXT_PUBLIC_SITE_URL": {
-      "type": "string",
-      "description": "The production URL of your site"
-    }
-  }
+  "framework": "nextjs"
 }

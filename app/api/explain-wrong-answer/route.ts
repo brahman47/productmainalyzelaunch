@@ -5,7 +5,7 @@ import { logger } from '@/lib/logger';
 import { ZodError } from 'zod';
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent';
+const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent';
 
 export async function POST(request: NextRequest) {
   try {

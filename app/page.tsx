@@ -78,22 +78,6 @@ export default function Home() {
                 Explore Features
               </Link>
             </div>
-            
-            {/* Stats */}
-            <div className="mt-16 grid grid-cols-1 sm:grid-cols-3 gap-8">
-              <div className="text-center">
-                <div className="text-4xl font-bold text-blue-600 mb-2">10,000+</div>
-                <div className="text-slate-600">Answers Evaluated</div>
-              </div>
-              <div className="text-center">
-                <div className="text-4xl font-bold text-blue-600 mb-2">50,000+</div>
-                <div className="text-slate-600">Questions Generated</div>
-              </div>
-              <div className="text-center">
-                <div className="text-4xl font-bold text-blue-600 mb-2">95%</div>
-                <div className="text-slate-600">Success Rate</div>
-              </div>
-            </div>
           </div>
         </div>
       </section>

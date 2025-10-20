@@ -54,6 +54,14 @@ export async function POST(request: NextRequest) {
     
     const { question, answerText, answerFiles } = validatedData
 
+    // For now, we require at least one file since the edge function processes images/PDFs
+    if (!answerFiles || answerFiles.length === 0) {
+      return NextResponse.json(
+        { error: 'Please upload at least one image or PDF file' },
+        { status: 400 }
+      )
+    }
+
     // Create evaluation record with pending status
     const { data: evaluation, error: dbError } = await supabase
       .from('mains_evaluations')

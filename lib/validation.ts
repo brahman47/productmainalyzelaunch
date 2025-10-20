@@ -24,15 +24,28 @@ export const evaluateAnswerSchema = z.object({
   question: z.string()
     .max(2000, 'Question text too long')
     .trim()
-    .optional(),
+    .optional()
+    .nullable(),
   answerText: z.string()
     .max(5000, 'Answer text too long')
     .trim()
-    .optional(),
+    .optional()
+    .nullable(),
   answerFiles: z.array(z.string().min(1, 'File URL cannot be empty'))
-    .min(1, 'At least one answer file is required')
-    .max(10, 'Maximum 10 files allowed'),
-})
+    .max(10, 'Maximum 10 files allowed')
+    .optional()
+    .default([]),
+}).refine(
+  (data) => {
+    // At least one of answerFiles or answerText must be provided
+    const hasFiles = data.answerFiles && data.answerFiles.length > 0
+    const hasText = data.answerText && data.answerText.trim().length > 0
+    return hasFiles || hasText
+  },
+  {
+    message: 'Please provide either answer files or answer text',
+  }
+)
 
 // Explain Wrong Answer API
 export const explainWrongAnswerSchema = z.object({

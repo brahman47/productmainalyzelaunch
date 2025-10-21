@@ -1,6 +1,8 @@
-// Script to apply the mentor guidance migration to remote Supabase
-const SUPABASE_URL = 'https://prdesheccbrfpjczvsif.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InByZGVzaGVjY2JyZnBqY3p2c2lmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA4MzQzODgsImV4cCI6MjA3NjQxMDM4OH0.lMp3uqNaJWl3DJphizN8gFFnVmksVY5IroyT6gPljss';
+// Script to apply migrations to remote Supabase
+// COPY THIS FILE TO apply-migration.js AND ADD YOUR CREDENTIALS
+
+const SUPABASE_URL = 'YOUR_SUPABASE_URL'; // e.g., 'https://xxxxx.supabase.co'
+const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY'; // Get from Supabase Dashboard > Settings > API
 
 const migration = `
 -- Create table for storing AI mentor guidance for action plan items
@@ -72,7 +74,6 @@ async function applyMigration() {
     });
 
     if (!response.ok) {
-      // Try alternative method using postgrest
       console.log('First method failed, trying SQL execution via REST API...');
       
       const statements = migration.split(';').filter(s => s.trim());
@@ -84,7 +85,7 @@ async function applyMigration() {
       }
       
       console.log('\n⚠️  Note: You need to run this migration manually in Supabase Dashboard SQL Editor:');
-      console.log('\n1. Go to https://supabase.com/dashboard/project/prdesheccbrfpjczvsif/sql');
+      console.log('\n1. Go to your Supabase Dashboard > SQL Editor');
       console.log('2. Copy the SQL from: supabase/migrations/20251020000009_add_mentor_guidance.sql');
       console.log('3. Paste and run it\n');
     } else {
@@ -92,10 +93,7 @@ async function applyMigration() {
     }
   } catch (error) {
     console.error('Error applying migration:', error);
-    console.log('\n⚠️  Please run the migration manually:');
-    console.log('\n1. Go to https://supabase.com/dashboard/project/prdesheccbrfpjczvsif/sql');
-    console.log('2. Copy the SQL from: supabase/migrations/20251020000009_add_mentor_guidance.sql');
-    console.log('3. Paste and run it\n');
+    console.log('\n⚠️  Please run the migration manually in Supabase Dashboard SQL Editor\n');
   }
 }
 
